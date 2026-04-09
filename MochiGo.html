@@ -1,0 +1,2244 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mochi - Tu Mascota Fitness</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Baloo+2:wght@400;600;700;800&display=swap');
+
+  :root {
+    --green-dark: #2d7d32;
+    --green-mid: #43a047;
+    --green-light: #66bb6a;
+    --green-pale: #e8f5e9;
+    --green-btn: #4caf50;
+    --yellow: #ffd600;
+    --yellow-warm: #ffb300;
+    --cream: #fdf8f0;
+    --cream2: #fff8e7;
+    --red: #ef5350;
+    --blue: #42a5f5;
+    --orange: #ff7043;
+    --purple: #ab47bc;
+    --text-dark: #2e2e2e;
+    --text-mid: #555;
+    --shadow: 0 4px 20px rgba(0,0,0,0.12);
+    --shadow-lg: 0 8px 40px rgba(0,0,0,0.18);
+    --radius: 20px;
+    --radius-sm: 12px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: #a5d6a7;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+    background-image: 
+      radial-gradient(circle at 20% 20%, rgba(255,255,255,0.3) 0%, transparent 50%),
+      radial-gradient(circle at 80% 80%, rgba(0,100,0,0.2) 0%, transparent 50%);
+  }
+
+  #app {
+    width: 100%;
+    max-width: 420px;
+    min-height: 100dvh;
+    max-height: 100dvh;
+    background: var(--cream);
+    border-radius: 30px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: var(--shadow-lg);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .screen {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    overflow-x: hidden;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateX(30px);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+    background: var(--cream);
+  }
+  .screen.active {
+    opacity: 1;
+    pointer-events: all;
+    transform: translateX(0);
+  }
+  .screen.exit-left {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+
+  .green-header {
+    background: linear-gradient(135deg, var(--green-dark) 0%, var(--green-mid) 60%, var(--green-light) 100%);
+    padding: 28px 20px 32px;
+    text-align: center;
+    position: relative;
+    flex-shrink: 0;
+  }
+  .green-header::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      45deg, transparent, transparent 10px,
+      rgba(255,255,255,0.04) 10px, rgba(255,255,255,0.04) 20px
+    );
+  }
+  .green-header h1 {
+    font-family: 'Baloo 2', cursive;
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: #fff;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    position: relative;
+    z-index: 1;
+  }
+  .green-header p {
+    color: rgba(255,255,255,0.85);
+    font-size: 0.95rem;
+    margin-top: 4px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .badge-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: linear-gradient(135deg, var(--yellow) 0%, var(--yellow-warm) 100%);
+    color: #5a3e00;
+    font-family: 'Baloo 2', cursive;
+    font-weight: 700;
+    font-size: 0.9rem;
+    padding: 8px 18px;
+    border-radius: 50px;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 3px 12px rgba(255,180,0,0.4);
+    margin-bottom: 10px;
+    position: relative;
+    z-index: 2;
+    transition: transform 0.2s, box-shadow 0.2s;
+    animation: badgePop 2s ease-in-out infinite;
+  }
+  .badge-btn:hover { transform: scale(1.05); box-shadow: 0 5px 20px rgba(255,180,0,0.5); }
+  @keyframes badgePop {
+    0%,100% { transform: scale(1); }
+    50% { transform: scale(1.03); }
+  }
+
+  .form-body {
+    flex: 1;
+    padding: 24px 20px;
+    overflow-y: auto;
+  }
+
+  .section-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: linear-gradient(135deg, var(--green-dark), var(--green-mid));
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    padding: 5px 12px;
+    border-radius: 50px;
+    margin-bottom: 16px;
+    text-transform: uppercase;
+  }
+
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
+  .form-group { margin-bottom: 14px; }
+  .form-group label {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.78rem;
+    font-weight: 800;
+    color: var(--text-dark);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 6px;
+  }
+  .form-group input, .form-group select {
+    width: 100%;
+    padding: 11px 15px;
+    border: 2px solid #e0d8c8;
+    border-radius: var(--radius-sm);
+    font-family: 'Nunito', sans-serif;
+    font-size: 0.95rem;
+    color: var(--text-dark);
+    background: #fff;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .form-group input:focus, .form-group select:focus {
+    border-color: var(--green-mid);
+    box-shadow: 0 0 0 3px rgba(67,160,71,0.15);
+  }
+  .form-group input::placeholder { color: #bbb; }
+
+  .gender-row { display: flex; gap: 10px; }
+  .gender-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px;
+    border: 2px solid #e0d8c8;
+    border-radius: 50px;
+    background: #fff;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 700;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: var(--text-dark);
+  }
+  .gender-btn.selected {
+    border-color: var(--green-mid);
+    background: var(--green-pale);
+    color: var(--green-dark);
+  }
+
+  .pw-hints { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+  .pw-hint {
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 50px;
+    background: #eee;
+    color: #888;
+    transition: all 0.2s;
+  }
+  .pw-hint.ok { background: var(--green-pale); color: var(--green-dark); }
+
+  .btn-main {
+    width: 100%;
+    padding: 16px;
+    background: linear-gradient(135deg, var(--green-btn) 0%, var(--green-dark) 100%);
+    color: #fff;
+    border: none;
+    border-radius: 50px;
+    font-family: 'Baloo 2', cursive;
+    font-size: 1.15rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(67,160,71,0.4), inset 0 1px 0 rgba(255,255,255,0.2);
+    transition: transform 0.2s, box-shadow 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 8px;
+  }
+  .btn-main:hover { transform: translateY(-2px); box-shadow: 0 6px 28px rgba(67,160,71,0.5); }
+  .btn-main:active { transform: translateY(0); }
+
+  .btn-secondary {
+    width: 100%;
+    padding: 13px;
+    background: #fff;
+    color: var(--green-dark);
+    border: 2.5px solid var(--green-mid);
+    border-radius: 50px;
+    font-family: 'Baloo 2', cursive;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 8px;
+  }
+  .btn-secondary:hover { background: var(--green-pale); }
+
+  .link-text {
+    text-align: center;
+    font-size: 0.88rem;
+    color: var(--text-mid);
+    margin-top: 12px;
+  }
+  .link-text a {
+    color: var(--green-dark);
+    font-weight: 800;
+    text-decoration: none;
+    cursor: pointer;
+  }
+  .link-text a:hover { text-decoration: underline; }
+
+  .divider {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 16px 0;
+    color: #bbb;
+    font-size: 0.85rem;
+  }
+  .divider::before, .divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: #e0e0e0;
+  }
+
+  .social-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+  .social-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px;
+    border: 2px solid #e0d8c8;
+    border-radius: var(--radius-sm);
+    background: #fff;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 700;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: var(--text-dark);
+  }
+  .social-btn:hover { background: #f5f5f5; transform: translateY(-1px); }
+
+  .remember-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 12px 0;
+    font-size: 0.88rem;
+  }
+  .remember-row label { display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 600; }
+  .remember-row a { color: var(--green-dark); font-weight: 700; text-decoration: none; cursor: pointer; }
+
+  #screen-choose-pet {
+    background: linear-gradient(180deg, #e8f5e9 0%, var(--cream) 100%);
+  }
+  .pet-choose-header {
+    background: linear-gradient(135deg, var(--green-dark), var(--green-mid));
+    padding: 30px 20px;
+    text-align: center;
+  }
+  .pet-choose-header h1 {
+    font-family: 'Baloo 2', cursive;
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: #fff;
+  }
+  .pet-choose-header p { color: rgba(255,255,255,0.85); font-size: 0.9rem; margin-top: 5px; }
+  .pet-options {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 24px 20px;
+  }
+  .pet-option {
+    background: #fff;
+    border: 3px solid #e0d8c8;
+    border-radius: var(--radius);
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    cursor: pointer;
+    transition: all 0.25s;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  }
+  .pet-option:hover, .pet-option.selected {
+    border-color: var(--green-mid);
+    background: var(--green-pale);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(67,160,71,0.2);
+  }
+  .pet-emoji { font-size: 3.5rem; }
+  .pet-info h3 {
+    font-family: 'Baloo 2', cursive;
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: var(--green-dark);
+  }
+  .pet-info p { font-size: 0.85rem; color: var(--text-mid); margin-top: 2px; }
+
+  #screen-game {
+    background: linear-gradient(180deg, #e3f2fd 0%, #e8f5e9 100%);
+    min-height: 100%;
+  }
+
+  .game-header {
+    background: linear-gradient(135deg, var(--green-dark), var(--green-mid));
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+    z-index: 10;
+  }
+  .coins-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(0,0,0,0.2);
+    padding: 6px 12px;
+    border-radius: 50px;
+    color: var(--yellow);
+    font-family: 'Baloo 2', cursive;
+    font-weight: 800;
+    font-size: 1rem;
+  }
+  .coins-badge .coin-icon { font-size: 1.2rem; }
+  .game-title {
+    font-family: 'Baloo 2', cursive;
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: #fff;
+    text-align: center;
+  }
+
+  .plan-btn-gold {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: linear-gradient(135deg, var(--yellow), var(--yellow-warm));
+    color: #5a3e00;
+    font-family: 'Baloo 2', cursive;
+    font-weight: 800;
+    font-size: 0.8rem;
+    padding: 7px 12px;
+    border-radius: 50px;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 2px 10px rgba(255,180,0,0.4);
+    transition: transform 0.2s;
+  }
+  .plan-btn-gold:hover { transform: scale(1.05); }
+
+  .logout-btn {
+    background: rgba(255,255,255,0.2);
+    color: white;
+    border: none;
+    padding: 7px 12px;
+    border-radius: 50px;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 0.8rem;
+  }
+
+  .pet-scene {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    padding: 10px 20px 0;
+    min-height: 220px;
+    background: linear-gradient(180deg, #bbdefb 0%, #c8e6c9 100%);
+    overflow: hidden;
+  }
+  .pet-scene::before {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 40px;
+    background: linear-gradient(180deg, transparent, rgba(139,195,74,0.3));
+  }
+
+  .scene-window {
+    position: absolute;
+    top: 15px; right: 20px;
+    width: 60px; height: 55px;
+    background: #90caf9;
+    border: 3px solid #5c9dd5;
+    border-radius: 8px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2px;
+    padding: 4px;
+  }
+  .scene-window div { background: #b3e5fc; border-radius: 3px; }
+
+  .pet-display {
+    font-size: 8rem;
+    line-height: 1;
+    position: relative;
+    z-index: 2;
+    cursor: default;
+    user-select: none;
+    filter: drop-shadow(0 8px 20px rgba(0,0,0,0.15));
+    animation: petFloat 3s ease-in-out infinite;
+    transition: transform 0.3s;
+  }
+  .pet-display:hover { transform: scale(1.05); }
+  @keyframes petFloat {
+    0%, 100% { transform: translateY(0) rotate(-1deg); }
+    33% { transform: translateY(-8px) rotate(1deg); }
+    66% { transform: translateY(-4px) rotate(-0.5deg); }
+  }
+
+  .pet-stats {
+    padding: 14px 18px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .stat-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .stat-icon {
+    font-size: 1.3rem;
+    width: 30px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+  .stat-bar-wrap {
+    flex: 1;
+    background: rgba(0,0,0,0.1);
+    border-radius: 50px;
+    height: 18px;
+    overflow: hidden;
+    border: 2px solid rgba(0,0,0,0.08);
+  }
+  .stat-bar {
+    height: 100%;
+    border-radius: 50px;
+    transition: width 0.6s ease;
+    position: relative;
+  }
+  .stat-bar::after {
+    content: '';
+    position: absolute;
+    top: 2px; left: 4px; right: 4px;
+    height: 5px;
+    background: rgba(255,255,255,0.4);
+    border-radius: 50px;
+  }
+  .stat-bar.health { background: linear-gradient(90deg, #ef5350, #ff7043); }
+  .stat-bar.food { background: linear-gradient(90deg, #ffa726, #ffcc02); }
+  .stat-bar.sleep { background: linear-gradient(90deg, #7e57c2, #ab47bc); }
+
+  .game-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    padding: 12px 18px 20px;
+  }
+  .game-btn {
+    padding: 14px 10px;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-family: 'Baloo 2', cursive;
+    font-weight: 800;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+  .game-btn.challenges {
+    background: linear-gradient(135deg, #ff7043, #f4511e);
+    color: #fff;
+  }
+  .game-btn.customize {
+    background: linear-gradient(135deg, var(--green-btn), var(--green-dark));
+    color: #fff;
+  }
+  .game-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0,0,0,0.2); }
+  .game-btn:active { transform: translateY(0); }
+
+  #screen-challenges {
+    background: linear-gradient(180deg, #e8f5e9 0%, var(--cream) 100%);
+  }
+  .challenges-header {
+    background: linear-gradient(135deg, #ff7043, #bf360c);
+    padding: 18px 18px 22px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    position: relative;
+  }
+  .challenges-header h2 {
+    font-family: 'Baloo 2', cursive;
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: #fff;
+  }
+  .challenges-header .coins-badge { margin-left: auto; }
+
+  .challenges-list {
+    padding: 16px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    flex: 1;
+  }
+
+  .challenge-card {
+    background: #fff;
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    border: 2px solid #f0e8d8;
+    transition: all 0.2s;
+  }
+  .challenge-card.completed {
+    border-color: var(--green-mid);
+    background: var(--green-pale);
+  }
+  .ch-top {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
+  }
+  .ch-icon-box {
+    width: 48px; height: 48px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    flex-shrink: 0;
+  }
+  .ch-info { flex: 1; }
+  .ch-info h3 {
+    font-family: 'Baloo 2', cursive;
+    font-size: 1rem;
+    font-weight: 800;
+    color: var(--text-dark);
+  }
+  .ch-pts {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--yellow-warm);
+  }
+  .ch-progress-wrap {
+    background: #eee;
+    border-radius: 50px;
+    height: 14px;
+    overflow: hidden;
+    margin-bottom: 8px;
+  }
+  .ch-progress {
+    height: 100%;
+    border-radius: 50px;
+    background: linear-gradient(90deg, var(--green-light), var(--green-dark));
+    transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .ch-progress-label {
+    font-size: 0.78rem;
+    color: var(--text-mid);
+    font-weight: 700;
+  }
+  .ch-action-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+  }
+  .ch-input {
+    flex: 1;
+    padding: 7px 12px;
+    border: 2px solid #e0d8c8;
+    border-radius: 50px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 0.85rem;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .ch-input:focus { border-color: var(--green-mid); }
+  .ch-btn {
+    padding: 8px 14px;
+    border: none;
+    border-radius: 50px;
+    background: var(--green-btn);
+    color: #fff;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    font-size: 0.82rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .ch-btn:hover { background: var(--green-dark); transform: scale(1.03); }
+  .camera-btn {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 50px;
+    background: linear-gradient(135deg, var(--blue), #1565c0);
+    color: #fff;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    font-size: 0.82rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .camera-btn:hover { transform: scale(1.03); }
+
+  .ch-bottom-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    padding: 0 16px 20px;
+  }
+  .ch-locked-btn {
+    padding: 13px;
+    border: none;
+    border-radius: var(--radius-sm);
+    background: #ccc;
+    color: #888;
+    font-family: 'Baloo 2', cursive;
+    font-weight: 800;
+    font-size: 0.9rem;
+    cursor: not-allowed;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+  .ch-back-btn {
+    padding: 13px;
+    border: none;
+    border-radius: var(--radius-sm);
+    background: linear-gradient(135deg, var(--green-btn), var(--green-dark));
+    color: #fff;
+    font-family: 'Baloo 2', cursive;
+    font-weight: 800;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+  .ch-back-btn:hover { transform: translateY(-2px); }
+
+  .points-popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    background: linear-gradient(135deg, var(--yellow), var(--yellow-warm));
+    color: #5a3e00;
+    font-family: 'Baloo 2', cursive;
+    font-size: 2rem;
+    font-weight: 800;
+    padding: 20px 40px;
+    border-radius: 20px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+    z-index: 9999;
+    pointer-events: none;
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s;
+    opacity: 0;
+  }
+  .points-popup.show {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+
+  #screen-customize {
+    background: linear-gradient(180deg, #e3f2fd 0%, var(--cream) 100%);
+  }
+  .customize-header {
+    background: linear-gradient(135deg, var(--green-dark), var(--green-mid));
+    padding: 18px 18px 22px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .customize-header h2 {
+    font-family: 'Baloo 2', cursive;
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: #fff;
+  }
+
+  .skin-options {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 14px;
+    padding: 20px 16px;
+  }
+  .skin-option {
+    background: #fff;
+    border: 3px solid #e0d8c8;
+    border-radius: var(--radius);
+    padding: 16px 10px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.25s;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+  }
+  .skin-option.selected {
+    border-color: var(--yellow);
+    background: #fff9e6;
+    transform: scale(1.05);
+    box-shadow: 0 6px 20px rgba(255,180,0,0.3);
+  }
+  .skin-option:hover { transform: scale(1.03); }
+  .skin-emoji {
+    font-size: 3rem;
+    display: block;
+    margin-bottom: 8px;
+    animation: skinFloat 2s ease-in-out infinite;
+  }
+  @keyframes skinFloat {
+    0%,100% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
+  }
+  .skin-name {
+    font-family: 'Baloo 2', cursive;
+    font-size: 0.85rem;
+    font-weight: 800;
+    color: var(--text-dark);
+  }
+  .skin-tag {
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 50px;
+    margin-top: 4px;
+    display: inline-block;
+  }
+  .tag-special { background: #fff3e0; color: #e65100; }
+  .tag-normal { background: var(--green-pale); color: var(--green-dark); }
+
+  .customize-preview {
+    text-align: center;
+    padding: 10px;
+    font-size: 5rem;
+    animation: petFloat 3s ease-in-out infinite;
+  }
+
+  .customize-btns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    padding: 0 16px 20px;
+  }
+
+  .overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 1000;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+  }
+  .overlay.show { opacity: 1; pointer-events: all; }
+  .overlay-sheet {
+    background: var(--cream);
+    border-radius: 30px 30px 0 0;
+    padding: 24px 20px 36px;
+    width: 100%;
+    max-width: 420px;
+    max-height: 92vh;
+    overflow-y: auto;
+    transform: translateY(40px);
+    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .overlay.show .overlay-sheet { transform: translateY(0); }
+  .overlay-handle {
+    width: 40px; height: 4px;
+    background: #ddd;
+    border-radius: 50px;
+    margin: 0 auto 20px;
+  }
+  .overlay-title {
+    font-family: 'Baloo 2', cursive;
+    font-size: 1.5rem;
+    font-weight: 800;
+    text-align: center;
+    color: var(--text-dark);
+    margin-bottom: 6px;
+  }
+  .overlay-sub {
+    text-align: center;
+    color: var(--text-mid);
+    font-size: 0.85rem;
+    margin-bottom: 20px;
+  }
+
+  .plan-cards { display: flex; flex-direction: column; gap: 14px; }
+  .plan-card {
+    border-radius: var(--radius);
+    padding: 18px;
+    border: 3px solid transparent;
+    transition: all 0.25s;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+  }
+  .plan-card:hover { transform: translateY(-2px); }
+  .plan-card.free { background: #f0f4ff; border-color: #90caf9; }
+  .plan-card.plus { background: #e8f5e9; border-color: var(--green-mid); }
+  .plan-card.premium {
+    background: linear-gradient(135deg, #1a237e 0%, #283593 100%);
+    color: #fff;
+    border-color: #3949ab;
+  }
+  .plan-badge {
+    display: inline-block;
+    font-family: 'Baloo 2', cursive;
+    font-weight: 800;
+    font-size: 1rem;
+    margin-bottom: 8px;
+  }
+  .plan-price {
+    font-family: 'Baloo 2', cursive;
+    font-size: 1.4rem;
+    font-weight: 800;
+    margin-bottom: 10px;
+  }
+  .plan-card.premium .plan-price, .plan-card.premium .plan-badge { color: var(--yellow); }
+  .plan-features {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  .plan-features li {
+    font-size: 0.82rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .plan-features li::before { content: '•'; font-size: 1.2rem; color: currentColor; opacity: 0.7; }
+  .plan-card.free .plan-features li { color: #1565c0; }
+  .plan-card.plus .plan-features li { color: var(--green-dark); }
+  .plan-card.premium .plan-features li { color: rgba(255,255,255,0.9); }
+  .plan-select-btn {
+    width: 100%;
+    margin-top: 12px;
+    padding: 10px;
+    border: none;
+    border-radius: 50px;
+    font-family: 'Baloo 2', cursive;
+    font-weight: 800;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .plan-card.free .plan-select-btn { background: #90caf9; color: #1565c0; }
+  .plan-card.plus .plan-select-btn { background: var(--green-btn); color: #fff; }
+  .plan-card.premium .plan-select-btn { background: var(--yellow); color: #5a3e00; }
+  .plan-select-btn:hover { transform: scale(1.02); }
+
+  .camera-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.9);
+    z-index: 2000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+  }
+  .camera-modal.show { opacity: 1; pointer-events: all; }
+  #cameraVideo {
+    width: 90%;
+    max-width: 380px;
+    border-radius: 20px;
+    border: 3px solid #fff;
+  }
+  #cameraCanvas { display: none; }
+  .camera-controls { display: flex; gap: 12px; }
+  .cam-btn {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 50px;
+    font-family: 'Baloo 2', cursive;
+    font-weight: 800;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .cam-snap { background: #fff; color: #222; }
+  .cam-close { background: #ef5350; color: #fff; }
+
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: #323232;
+    color: #fff;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 700;
+    font-size: 0.9rem;
+    padding: 12px 24px;
+    border-radius: 50px;
+    z-index: 9999;
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    white-space: nowrap;
+    pointer-events: none;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  .back-circle {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.25);
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    color: #fff;
+    flex-shrink: 0;
+    transition: background 0.2s;
+  }
+  .back-circle:hover { background: rgba(255,255,255,0.4); }
+
+  .photo-preview {
+    width: 100%;
+    border-radius: 12px;
+    margin-top: 8px;
+    display: none;
+    border: 2px solid var(--green-mid);
+  }
+
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 4px; }
+
+  .input-wrap { position: relative; }
+  .input-wrap input { padding-right: 44px; }
+  .pw-eye {
+    position: absolute;
+    right: 12px; top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.1rem;
+    color: #aaa;
+    transition: color 0.2s;
+  }
+  .pw-eye:hover { color: var(--green-mid); }
+
+  @media (max-width: 420px) {
+    #app { border-radius: 0; max-height: none; min-height: 100dvh; }
+    body { padding: 0; align-items: flex-start; background: var(--cream); }
+  }
+</style>
+</head>
+<body>
+
+<div id="app">
+
+  <div id="screen-register" class="screen active">
+    <div class="green-header">
+      <button class="badge-btn" onclick="showScreen('screen-login')">🦦 ¡Hola de nuevo!</button>
+      <h1>Crear cuenta</h1>
+      <p>Comienza tu aventura hoy mismo</p>
+    </div>
+
+    <div class="form-body">
+      <div class="section-label">👤 Datos Personales</div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>✏️ Nombre</label>
+          <input type="text" id="reg-nombre" placeholder="Ej: Mochi">
+        </div>
+        <div class="form-group">
+          <label>✏️ Apellidos</label>
+          <input type="text" id="reg-apellidos" placeholder="Ej: Nutria Feliz">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>🎂 Nacimiento</label>
+          <input type="date" id="reg-fecha">
+        </div>
+        <div class="form-group">
+          <label>🌍 País</label>
+          <select id="reg-pais">
+            <option value="">Selecciona...</option>
+            <option>España</option>
+            <option>México</option>
+            <option>Argentina</option>
+            <option>Colombia</option>
+            <option>Chile</option>
+            <option>Otro</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>🦦 Género</label>
+        <div class="gender-row">
+          <button type="button" class="gender-btn" onclick="selectGender(this)">🦦 Masculino</button>
+          <button type="button" class="gender-btn" onclick="selectGender(this)">🦦 Femenino</button>
+          <button type="button" class="gender-btn" onclick="selectGender(this)">🌟 Otro</button>
+        </div>
+      </div>
+
+      <div class="section-label" style="margin-top:8px">🔒 Tu Cuenta</div>
+
+      <div class="form-group">
+        <label>🔵 Correo Electrónico</label>
+        <input type="email" id="reg-email" placeholder="hola@ejemplo.com">
+      </div>
+      <div class="form-group">
+        <label>🔒 Contraseña</label>
+        <div class="input-wrap">
+          <input type="password" id="reg-pass" placeholder="Crea una contraseña segura" oninput="checkPassword()">
+          <button type="button" class="pw-eye" onclick="togglePw('reg-pass',this)">👁️</button>
+        </div>
+        <div class="pw-hints">
+          <span class="pw-hint" id="hint-len">8+ caracteres</span>
+          <span class="pw-hint" id="hint-upper">Mayúscula</span>
+          <span class="pw-hint" id="hint-lower">Minúscula</span>
+          <span class="pw-hint" id="hint-num">Número</span>
+          <span class="pw-hint" id="hint-sym">Símbolo</span>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>🔑 Repetir Contraseña</label>
+        <div class="input-wrap">
+          <input type="password" id="reg-pass2" placeholder="Repite tu contraseña">
+          <button type="button" class="pw-eye" onclick="togglePw('reg-pass2',this)">👁️</button>
+        </div>
+      </div>
+
+      <button class="btn-main" onclick="doRegister()">🦦 ¡Empezar aventura!</button>
+      <p class="link-text">¿Ya tienes cuenta? <a onclick="showScreen('screen-login')">Inicia sesión</a></p>
+    </div>
+  </div>
+
+  <div id="screen-login" class="screen">
+    <div class="green-header">
+      <div style="font-size:3rem;margin-bottom:6px">🦦</div>
+      <button class="badge-btn" onclick="showScreen('screen-register')">🦦 ¡Únete a Mochi!</button>
+      <h1>Iniciar sesión</h1>
+      <p>Mochi te ha estado esperando...</p>
+    </div>
+
+    <div class="form-body">
+      <div class="form-group">
+        <label>🔵 Usuario o Correo</label>
+        <input type="email" id="log-email" placeholder="hola@ejemplo.com">
+      </div>
+      <div class="form-group">
+        <label>🔒 Contraseña</label>
+        <div class="input-wrap">
+          <input type="password" id="log-pass" placeholder="Tu contraseña secreta">
+          <button type="button" class="pw-eye" onclick="togglePw('log-pass',this)">👁️</button>
+        </div>
+      </div>
+      <div class="remember-row">
+        <label><input type="checkbox" id="remember-me"> RECORDARME</label>
+        <a onclick="showToast('💀 Esa parte aún no la hice, no me mates')">¿Olvidaste tu contraseña?</a>
+      </div>
+      <button class="btn-main" onclick="doLogin()">🚀 ¡Entrar!</button>
+
+      <div class="divider">o continúa con</div>
+      <div class="social-row">
+        <button class="social-btn" onclick="doSocialLogin()">🌐 Google</button>
+        <button class="social-btn" onclick="doSocialLogin()">🍎 Apple</button>
+        <button class="social-btn" onclick="doSocialLogin()">📘 Facebook</button>
+      </div>
+      <p class="link-text">¿Aún no tienes cuenta? <a onclick="showScreen('screen-register')"><b>¡Regístrate gratis!</b></a></p>
+    </div>
+  </div>
+
+  <div id="screen-personalize" class="screen">
+    <div style="background:linear-gradient(135deg,#2d7d32,#43a047);padding:20px 20px 26px;text-align:center;position:relative">
+      <div style="font-size:2.5rem;margin-bottom:4px">🧬</div>
+      <h1 style="font-family:'Baloo 2',cursive;font-size:1.8rem;font-weight:800;color:#fff">Personalización</h1>
+      <p style="color:rgba(255,255,255,0.85);font-size:0.9rem;margin-top:4px">Cuéntanos sobre ti para adaptar tu aventura</p>
+    </div>
+
+    <div class="form-body" style="padding:20px">
+      <div class="form-row">
+        <div class="form-group">
+          <label>🎂 Edad</label>
+          <input type="number" id="pers-edad" placeholder="25" min="5" max="99">
+        </div>
+        <div class="form-group">
+          <label>⚖️ Peso (kg)</label>
+          <input type="number" id="pers-peso" placeholder="70" min="20" max="300">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>🎯 Objetivo personal</label>
+        <input type="text" id="pers-objetivo" placeholder="Ej: Perder peso, ganar músculo...">
+      </div>
+      <div class="form-group">
+        <label>🏥 Enfermedades o condiciones</label>
+        <input type="text" id="pers-enferm" placeholder="Ej: Ninguna, diabetes, asma...">
+      </div>
+      <div class="form-group">
+        <label>💪 Nivel Físico</label>
+        <select id="pers-nivel">
+          <option value="">Selecciona tu nivel...</option>
+          <option>Principiante</option>
+          <option>Intermedio</option>
+          <option>Avanzado</option>
+          <option>Atleta</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>🩹 Lesiones actuales</label>
+        <input type="text" id="pers-lesion" placeholder="Ej: Ninguna, rodilla derecha...">
+      </div>
+      <button class="btn-main" onclick="doPersonalize()" style="margin-top:16px">✅ ¡Todo listo!</button>
+    </div>
+  </div>
+
+  <div id="screen-choose-pet" class="screen">
+    <div class="pet-choose-header">
+      <h1>🐾 Elige tu Mascota</h1>
+      <p>Esta será tu compañera de aventuras</p>
+    </div>
+    <div class="pet-options">
+      <div class="pet-option" onclick="selectPet('dog','🐶','Perro',this)">
+        <div class="pet-emoji">🐶</div>
+        <div class="pet-info">
+          <h3>Perro</h3>
+          <p>Leal, energético y siempre feliz de verte</p>
+        </div>
+      </div>
+      <div class="pet-option" onclick="selectPet('cat','🐱','Gato',this)">
+        <div class="pet-emoji">🐱</div>
+        <div class="pet-info">
+          <h3>Gato</h3>
+          <p>Independiente, curioso y lleno de gracia</p>
+        </div>
+      </div>
+      <div class="pet-option" onclick="selectPet('otter','🦦','Nutria',this)">
+        <div class="pet-emoji">🦦</div>
+        <div class="pet-info">
+          <h3>Nutria</h3>
+          <p>Juguetona, adorable y con mucha energía</p>
+        </div>
+      </div>
+    </div>
+    <div style="padding:0 20px 24px">
+      <button class="btn-main" onclick="confirmPet()">🐾 ¡Elegir esta mascota!</button>
+    </div>
+  </div>
+
+  <div id="screen-game" class="screen">
+    <div class="game-header">
+      <div class="coins-badge">
+        <span class="coin-icon">🪙</span>
+        <span id="coin-display">0</span>
+      </div>
+      <div class="game-title" id="pet-name-display">MOCHI</div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="plan-btn-gold" onclick="showPlans()">⭐ PLAN</button>
+        <button class="logout-btn" onclick="logout()">🚪</button>
+      </div>
+    </div>
+
+    <div class="pet-scene">
+      <div class="scene-window">
+        <div></div><div></div><div></div><div></div>
+      </div>
+      <div class="pet-display" id="pet-display">🦦</div>
+    </div>
+
+    <div class="pet-stats">
+      <div class="stat-row">
+        <div class="stat-icon">❤️</div>
+        <div class="stat-bar-wrap">
+          <div class="stat-bar health" id="bar-health" style="width:80%"></div>
+        </div>
+      </div>
+      <div class="stat-row">
+        <div class="stat-icon">🍗</div>
+        <div class="stat-bar-wrap">
+          <div class="stat-bar food" id="bar-food" style="width:60%"></div>
+        </div>
+      </div>
+      <div class="stat-row">
+        <div class="stat-icon">💤</div>
+        <div class="stat-bar-wrap">
+          <div class="stat-bar sleep" id="bar-sleep" style="width:70%"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="game-buttons">
+      <button class="game-btn challenges" onclick="showScreen('screen-challenges')">⚡ RETOS DIARIOS</button>
+      <button class="game-btn customize" onclick="showScreen('screen-customize')">✨ PERSONALIZAR</button>
+    </div>
+  </div>
+
+  <div id="screen-challenges" class="screen">
+    <div class="challenges-header">
+      <button class="back-circle" onclick="showScreen('screen-game')">←</button>
+      <h2>⚡ Retos Diarios</h2>
+      <div class="coins-badge">
+        <span class="coin-icon">🪙</span>
+        <span id="coin-display-ch">0</span>
+      </div>
+    </div>
+
+    <div class="challenges-list">
+      <div class="challenge-card" id="ch-steps">
+        <div class="ch-top">
+          <div class="ch-icon-box" style="background:#e8f5e9">👟</div>
+          <div class="ch-info">
+            <h3>Camina 6000 pasos</h3>
+            <div class="ch-pts">🪙 +15 puntos (Medio)</div>
+          </div>
+        </div>
+        <div class="ch-progress-wrap">
+          <div class="ch-progress" id="prog-steps" style="width:0%"></div>
+        </div>
+        <div class="ch-progress-label" id="label-steps">0 / 6000 pasos</div>
+        <div class="ch-action-row">
+          <input class="ch-input" type="number" id="input-steps" placeholder="Pasos dados hoy..." min="0" max="6000">
+          <button class="ch-btn" onclick="submitChallenge('steps')">✓ Registrar</button>
+        </div>
+      </div>
+
+      <div class="challenge-card" id="ch-water">
+        <div class="ch-top">
+          <div class="ch-icon-box" style="background:#e3f2fd">💧</div>
+          <div class="ch-info">
+            <h3>Bebe 2L de agua</h3>
+            <div class="ch-pts">🪙 +5 puntos (Fácil)</div>
+          </div>
+        </div>
+        <div class="ch-progress-wrap">
+          <div class="ch-progress" id="prog-water" style="width:0%"></div>
+        </div>
+        <div class="ch-progress-label" id="label-water">0 / 3 vasos registrados</div>
+        <div class="ch-action-row" style="flex-wrap:wrap;gap:6px">
+          <button class="ch-btn" onclick="addWater()" style="flex:1">💧 +1 Vaso</button>
+          <button class="camera-btn" onclick="openCamera()">📷 Foto</button>
+          <button class="ch-btn" style="background:#5c9dd5;flex:1" onclick="showInfo()">ℹ️ Info</button>
+        </div>
+        <img id="water-photo" class="photo-preview" alt="Foto de agua">
+      </div>
+
+      <div class="challenge-card" id="ch-exercise">
+        <div class="ch-top">
+          <div class="ch-icon-box" style="background:#fff3e0">🏃</div>
+          <div class="ch-info">
+            <h3>Ejercicio 30 minutos</h3>
+            <div class="ch-pts">🪙 +20 puntos (Difícil)</div>
+          </div>
+        </div>
+        <div class="ch-progress-wrap">
+          <div class="ch-progress" id="prog-exercise" style="width:0%"></div>
+        </div>
+        <div class="ch-progress-label" id="label-exercise">0 / 30 minutos</div>
+        <div class="ch-action-row">
+          <input class="ch-input" type="number" id="input-exercise" placeholder="Minutos de ejercicio..." min="0" max="30">
+          <button class="ch-btn" onclick="submitChallenge('exercise')">✓ Registrar</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="ch-bottom-row">
+      <button class="ch-locked-btn">🔒 Más Retos</button>
+      <button class="ch-back-btn" onclick="showScreen('screen-game')">← Volver</button>
+    </div>
+  </div>
+
+  <div id="screen-customize" class="screen">
+    <div class="customize-header">
+      <button class="back-circle" onclick="showScreen('screen-game')">←</button>
+      <h2>✨ Personalizar Mascota</h2>
+    </div>
+
+    <div class="customize-preview" id="customize-preview">🦦</div>
+
+    <div style="padding:0 16px 10px">
+      <p style="text-align:center;font-weight:700;color:var(--text-mid);font-size:0.9rem">Elige el aspecto de tu mascota</p>
+    </div>
+
+    <div class="skin-options">
+      <div class="skin-option" id="skin-normal" onclick="selectSkin('normal',this)">
+        <span class="skin-emoji" id="skin-emoji-normal">🦦</span>
+        <div class="skin-name">Normal</div>
+        <span class="skin-tag tag-normal">Clásico</span>
+      </div>
+      <div class="skin-option" id="skin-cool" onclick="selectSkin('cool',this)">
+        <span class="skin-emoji" id="skin-emoji-cool">😎</span>
+        <div class="skin-name">Cool</div>
+        <span class="skin-tag tag-normal">Con gafas</span>
+      </div>
+      <div class="skin-option" id="skin-goku" onclick="selectSkin('goku',this)">
+        <span class="skin-emoji" id="skin-emoji-goku">🐉</span>
+        <div class="skin-name">Goku</div>
+        <span class="skin-tag tag-special">Dragon Ball ⭐</span>
+      </div>
+    </div>
+
+    <div style="padding:0 16px 10px;text-align:center;background:#fff8e1;margin:0 16px;border-radius:12px;padding:12px;">
+      <p style="font-size:0.8rem;font-weight:700;color:#e65100">🐉 El aspecto Goku viste a tu mascota con el traje naranja de entrenamiento de Goku de Dragon Ball Z</p>
+    </div>
+
+    <div class="customize-btns" style="margin-top:16px">
+      <button class="game-btn" style="background:linear-gradient(135deg,#ef5350,#b71c1c);color:#fff" onclick="showScreen('screen-game')">← Volver</button>
+      <button class="game-btn customize" onclick="saveSkin()">💾 Guardar</button>
+    </div>
+  </div>
+
+</div>
+
+<div id="plans-overlay" class="overlay" onclick="hidePlans(event)">
+  <div class="overlay-sheet" onclick="event.stopPropagation()">
+    <div class="overlay-handle"></div>
+    <div class="overlay-title">⭐ Planes de Precio</div>
+    <div class="overlay-sub">Desbloquea todo el potencial de tu aventura</div>
+
+    <div class="plan-cards">
+      <div class="plan-card free">
+        <div class="plan-badge">🆓 PLAN GRATUITO</div>
+        <div class="plan-price">0€ / mes</div>
+        <ul class="plan-features">
+          <li>Contiene anuncios</li>
+          <li>Hasta 3 retos diarios</li>
+          <li>Retos básicos personalizados</li>
+          <li>Recompensas limitadas</li>
+        </ul>
+        <button class="plan-select-btn" onclick="selectPlan('free')">Plan actual ✓</button>
+      </div>
+      <div class="plan-card plus">
+        <div class="plan-badge">⚡ PLAN PLUS</div>
+        <div class="plan-price">4,99€ / mes</div>
+        <ul class="plan-features">
+          <li>Sin anuncios</li>
+          <li>Hasta 6 retos diarios</li>
+          <li>Acceso a más mascotas</li>
+          <li>Más monedas y recompensas</li>
+          <li>Seguimiento completo del progreso</li>
+          <li>Plan válido hasta 6 meses</li>
+          <li>Gimnasios recomendados</li>
+        </ul>
+        <button class="plan-select-btn" onclick="selectPlan('plus')">¡Activar Plus! ⚡</button>
+      </div>
+      <div class="plan-card premium">
+        <div class="plan-badge">👑 PLAN PREMIUM</div>
+        <div class="plan-price" style="color:var(--yellow)">9,99€ / mes</div>
+        <ul class="plan-features">
+          <li>Sin anuncios</li>
+          <li>Hasta 10 retos diarios</li>
+          <li>Acceso a más mascotas</li>
+          <li>Recompensas exclusivas</li>
+          <li>Seguimiento completo del progreso</li>
+          <li>Plan válido hasta 1 año y medio</li>
+          <li>Descuentos en gimnasios</li>
+          <li>Consejos nutricionistas</li>
+        </ul>
+        <button class="plan-select-btn" onclick="selectPlan('premium')">¡Ser Premium! 👑</button>
+      </div>
+    </div>
+    <button class="btn-secondary" onclick="hidePlans()" style="margin-top:16px">Cerrar</button>
+  </div>
+</div>
+
+<div id="camera-modal" class="camera-modal">
+  <video id="cameraVideo" autoplay playsinline></video>
+  <canvas id="cameraCanvas"></canvas>
+  <div class="camera-controls">
+    <button class="cam-btn cam-snap" onclick="snapPhoto()">📷 Capturar</button>
+    <button class="cam-btn cam-close" onclick="closeCamera()">✕ Cerrar</button>
+  </div>
+</div>
+
+<div id="points-popup" class="points-popup"></div>
+<div id="toast" class="toast"></div>
+
+<script>
+// ===============================
+// BASE DE DATOS (INDEXEDDB)
+// ===============================
+let db;
+
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open("MochiDB", 1);
+
+    request.onupgradeneeded = function(event) {
+      db = event.target.result;
+
+      if (!db.objectStoreNames.contains("users")) {
+        const userStore = db.createObjectStore("users", { keyPath: "id", autoIncrement: true });
+        userStore.createIndex("email", "email", { unique: true });
+      }
+
+      if (!db.objectStoreNames.contains("sessions")) {
+        db.createObjectStore("sessions", { keyPath: "id" });
+      }
+    };
+
+    request.onsuccess = function(event) {
+      db = event.target.result;
+      resolve(db);
+    };
+
+    request.onerror = function() {
+      reject("Error abriendo la base de datos");
+    };
+  });
+}
+
+function encodePassword(password) {
+  return btoa(password);
+}
+function decodePassword(password) {
+  return atob(password);
+}
+
+function addUser(user) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction("users", "readwrite");
+    const store = tx.objectStore("users");
+    const req = store.add(user);
+
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject("Ese correo ya está registrado");
+  });
+}
+
+function getUserByEmail(email) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction("users", "readonly");
+    const store = tx.objectStore("users");
+    const index = store.index("email");
+    const req = index.get(email);
+
+    req.onsuccess = () => resolve(req.result || null);
+    req.onerror = () => reject("Error buscando usuario");
+  });
+}
+
+function updateUser(user) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction("users", "readwrite");
+    const store = tx.objectStore("users");
+    const req = store.put(user);
+
+    req.onsuccess = () => resolve(true);
+    req.onerror = () => reject("Error actualizando usuario");
+  });
+}
+
+function saveSession(userId) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction("sessions", "readwrite");
+    const store = tx.objectStore("sessions");
+    const req = store.put({ id: "currentUser", userId });
+
+    req.onsuccess = () => resolve(true);
+    req.onerror = () => reject(false);
+  });
+}
+
+function getSession() {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction("sessions", "readonly");
+    const store = tx.objectStore("sessions");
+    const req = store.get("currentUser");
+
+    req.onsuccess = () => resolve(req.result ? req.result.userId : null);
+    req.onerror = () => reject(null);
+  });
+}
+
+function clearSession() {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction("sessions", "readwrite");
+    const store = tx.objectStore("sessions");
+    const req = store.delete("currentUser");
+
+    req.onsuccess = () => resolve(true);
+    req.onerror = () => reject(false);
+  });
+}
+
+function getUserById(id) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction("users", "readonly");
+    const store = tx.objectStore("users");
+    const req = store.get(id);
+
+    req.onsuccess = () => resolve(req.result || null);
+    req.onerror = () => reject("Error obteniendo usuario");
+  });
+}
+
+// ===============================
+// STATE
+// ===============================
+const state = {
+  coins: 0,
+  currentPet: { type: 'otter', emoji: '🦦', name: 'Mochi', skin: 'normal' },
+  pendingPet: null,
+  pendingSkin: null,
+  challenges: { steps: 0, water: 0, exercise: 0 },
+  challengesDone: { steps: false, water: false, exercise: false },
+  petStats: { health: 80, food: 60, sleep: 70 }
+};
+
+let currentUser = null;
+
+// ===============================
+// PET EMOJIS
+// ===============================
+const petEmojis = {
+  dog: { normal: '🐶', cool: '🐕‍🦺', goku: '🐉' },
+  cat: { normal: '🐱', cool: '😼', goku: '🐉' },
+  otter: { normal: '🦦', cool: '🦦', goku: '🐉' }
+};
+
+function getPetEmoji(type, skin) {
+  if (skin === 'goku') return '🐉';
+  if (skin === 'cool') {
+    if (type === 'dog') return '🐕‍🦺';
+    if (type === 'cat') return '😼';
+    return '🦦';
+  }
+  return petEmojis[type]?.normal || '🦦';
+}
+
+// ===============================
+// SCREEN TRANSITIONS
+// ===============================
+let currentScreen = 'screen-register';
+
+function showScreen(id) {
+  const prev = document.getElementById(currentScreen);
+  const next = document.getElementById(id);
+  if (!next || id === currentScreen) return;
+
+  prev.classList.add('exit-left');
+  setTimeout(() => {
+    prev.classList.remove('active', 'exit-left');
+  }, 350);
+
+  next.style.transform = 'translateX(30px)';
+  next.classList.add('active');
+  setTimeout(() => { next.style.transform = ''; }, 10);
+
+  currentScreen = id;
+
+  if (id === 'screen-game') {
+    document.getElementById('coin-display').textContent = state.coins;
+    updatePetDisplay();
+    updateStats();
+  }
+  if (id === 'screen-challenges') {
+    document.getElementById('coin-display-ch').textContent = state.coins;
+    renderChallenges();
+  }
+  if (id === 'screen-customize') {
+    updateCustomizePreview();
+    document.querySelectorAll('.skin-option').forEach(el => el.classList.remove('selected'));
+    const cur = document.getElementById('skin-' + state.currentPet.skin);
+    if (cur) cur.classList.add('selected');
+  }
+}
+
+// ===============================
+// GENDER
+// ===============================
+function selectGender(btn) {
+  document.querySelectorAll('.gender-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+}
+
+// ===============================
+// PASSWORD
+// ===============================
+function checkPassword() {
+  const pw = document.getElementById('reg-pass').value;
+  const set = (id, ok) => document.getElementById(id).classList.toggle('ok', ok);
+  set('hint-len', pw.length >= 8);
+  set('hint-upper', /[A-Z]/.test(pw));
+  set('hint-lower', /[a-z]/.test(pw));
+  set('hint-num', /\d/.test(pw));
+  set('hint-sym', /[^A-Za-z0-9]/.test(pw));
+}
+function togglePw(id, btn) {
+  const inp = document.getElementById(id);
+  if (inp.type === 'password') { inp.type = 'text'; btn.textContent = '🙈'; }
+  else { inp.type = 'password'; btn.textContent = '👁️'; }
+}
+
+// ===============================
+// AUTH
+// ===============================
+async function doRegister() {
+  const nombre = document.getElementById('reg-nombre').value.trim();
+  const apellidos = document.getElementById('reg-apellidos').value.trim();
+  const fecha = document.getElementById('reg-fecha').value;
+  const pais = document.getElementById('reg-pais').value;
+  const email = document.getElementById('reg-email').value.trim().toLowerCase();
+  const pass = document.getElementById('reg-pass').value;
+  const pass2 = document.getElementById('reg-pass2').value;
+  const generoBtn = document.querySelector('.gender-btn.selected');
+  const genero = generoBtn ? generoBtn.textContent.trim() : '';
+
+  if (!nombre || !email || !pass) {
+    showToast('⚠️ Completa los campos obligatorios');
+    return;
+  }
+
+  if (pass !== pass2) {
+    showToast('⚠️ Las contraseñas no coinciden');
+    return;
+  }
+
+  if (pass.length < 8) {
+    showToast('⚠️ La contraseña debe tener al menos 8 caracteres');
+    return;
+  }
+
+  const newUser = {
+    nombre,
+    apellidos,
+    fecha,
+    pais,
+    genero,
+    email,
+    password: encodePassword(pass),
+    profile: {
+      edad: '',
+      peso: '',
+      objetivo: '',
+      enfermedades: '',
+      nivel: '',
+      lesiones: ''
+    },
+    pet: {
+      type: 'otter',
+      name: 'Mochi',
+      skin: 'normal'
+    },
+    coins: 0,
+    challenges: { steps: 0, water: 0, exercise: 0 },
+    challengesDone: { steps: false, water: false, exercise: false },
+    petStats: { health: 80, food: 60, sleep: 70 },
+    waterPhoto: '',
+    plan: 'free'
+  };
+
+  try {
+    const id = await addUser(newUser);
+    currentUser = { ...newUser, id };
+    await saveSession(id);
+    showToast('🎉 Cuenta creada correctamente');
+    showScreen('screen-personalize');
+  } catch (err) {
+    showToast('❌ ' + err);
+  }
+}
+
+async function doLogin() {
+  const email = document.getElementById('log-email').value.trim().toLowerCase();
+  const pass = document.getElementById('log-pass').value;
+
+  if (!email || !pass) {
+    showToast('⚠️ Completa correo y contraseña');
+    return;
+  }
+
+  try {
+    const user = await getUserByEmail(email);
+    if (!user) {
+      showToast('❌ Usuario no encontrado');
+      return;
+    }
+
+    if (decodePassword(user.password) !== pass) {
+      showToast('❌ Contraseña incorrecta');
+      return;
+    }
+
+    currentUser = user;
+    loadUserToState(user);
+
+    if (document.getElementById('remember-me').checked) {
+      await saveSession(user.id);
+    }
+
+    showToast('🚀 Bienvenida de vuelta, ' + user.nombre);
+    showScreen('screen-game');
+  } catch (err) {
+    showToast('❌ Error al iniciar sesión');
+  }
+}
+
+function doSocialLogin() {
+  showToast('🌐 Login social en demo, no me flipes todavía');
+}
+
+// ===============================
+// PROFILE / PERSONALIZATION
+// ===============================
+async function doPersonalize() {
+  if (!currentUser) {
+    showToast('⚠️ No hay usuario activo');
+    return;
+  }
+
+  const edad = document.getElementById('pers-edad').value;
+  const peso = document.getElementById('pers-peso').value;
+  const objetivo = document.getElementById('pers-objetivo').value.trim();
+  const enfermedades = document.getElementById('pers-enferm').value.trim();
+  const nivel = document.getElementById('pers-nivel').value;
+  const lesiones = document.getElementById('pers-lesion').value.trim();
+
+  if (!edad) {
+    showToast('⚠️ Introduce tu edad');
+    return;
+  }
+
+  currentUser.profile = { edad, peso, objetivo, enfermedades, nivel, lesiones };
+  await updateUser(currentUser);
+
+  showToast('✅ Perfil guardado');
+  showScreen('screen-choose-pet');
+}
+
+// ===============================
+// PET SELECTION
+// ===============================
+function selectPet(type, emoji, name, el) {
+  state.pendingPet = { type, emoji, name };
+  document.querySelectorAll('.pet-option').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+async function confirmPet() {
+  if (!state.pendingPet) {
+    showToast('⚠️ Elige una mascota primero');
+    return;
+  }
+
+  state.currentPet = { ...state.pendingPet, skin: 'normal' };
+  state.pendingSkin = 'normal';
+
+  if (currentUser) {
+    currentUser.pet.type = state.currentPet.type;
+    currentUser.pet.name = state.currentPet.name;
+    currentUser.pet.skin = 'normal';
+    await updateUser(currentUser);
+  }
+
+  updateCustomizeSkinEmojis();
+  updatePetDisplay();
+  showToast('🐾 Mascota guardada');
+  showScreen('screen-game');
+}
+
+function updateCustomizeSkinEmojis() {
+  const type = state.currentPet.type;
+  document.getElementById('skin-emoji-normal').textContent = petEmojis[type]?.normal || '🦦';
+  document.getElementById('skin-emoji-cool').textContent = petEmojis[type]?.cool || petEmojis[type]?.normal || '🦦';
+  document.getElementById('skin-emoji-goku').textContent = '🐉';
+}
+
+// ===============================
+// PET DISPLAY
+// ===============================
+function updatePetDisplay() {
+  const emoji = getPetEmoji(state.currentPet.type, state.currentPet.skin);
+  document.getElementById('pet-display').textContent = emoji;
+  document.getElementById('pet-name-display').textContent = state.currentPet.name.toUpperCase();
+}
+
+function updateStats() {
+  document.getElementById('bar-health').style.width = state.petStats.health + '%';
+  document.getElementById('bar-food').style.width = state.petStats.food + '%';
+  document.getElementById('bar-sleep').style.width = state.petStats.sleep + '%';
+}
+
+// ===============================
+// SAVE / LOAD USER DATA
+// ===============================
+function loadUserToState(user) {
+  state.coins = user.coins || 0;
+  state.currentPet = {
+    type: user.pet?.type || 'otter',
+    name: user.pet?.name || 'Mochi',
+    skin: user.pet?.skin || 'normal'
+  };
+  state.pendingSkin = state.currentPet.skin;
+  state.challenges = user.challenges || { steps: 0, water: 0, exercise: 0 };
+  state.challengesDone = user.challengesDone || { steps: false, water: false, exercise: false };
+  state.petStats = user.petStats || { health: 80, food: 60, sleep: 70 };
+
+  updateCustomizeSkinEmojis();
+  updatePetDisplay();
+  updateStats();
+
+  document.getElementById('coin-display').textContent = state.coins;
+  document.getElementById('coin-display-ch').textContent = state.coins;
+
+  if (user.profile) {
+    document.getElementById('pers-edad').value = user.profile.edad || '';
+    document.getElementById('pers-peso').value = user.profile.peso || '';
+    document.getElementById('pers-objetivo').value = user.profile.objetivo || '';
+    document.getElementById('pers-enferm').value = user.profile.enfermedades || '';
+    document.getElementById('pers-nivel').value = user.profile.nivel || '';
+    document.getElementById('pers-lesion').value = user.profile.lesiones || '';
+  }
+
+  if (user.waterPhoto) {
+    const img = document.getElementById('water-photo');
+    img.src = user.waterPhoto;
+    img.style.display = 'block';
+  }
+
+  renderChallenges();
+}
+
+async function saveCurrentUserData() {
+  if (!currentUser) return;
+
+  currentUser.coins = state.coins;
+  currentUser.pet = {
+    type: state.currentPet.type,
+    name: state.currentPet.name,
+    skin: state.currentPet.skin
+  };
+  currentUser.challenges = { ...state.challenges };
+  currentUser.challengesDone = { ...state.challengesDone };
+  currentUser.petStats = { ...state.petStats };
+
+  const waterImg = document.getElementById('water-photo');
+  currentUser.waterPhoto = waterImg.src && waterImg.style.display !== 'none' ? waterImg.src : '';
+
+  await updateUser(currentUser);
+}
+
+// ===============================
+// COINS
+// ===============================
+async function addCoins(amount) {
+  state.coins += amount;
+  document.getElementById('coin-display').textContent = state.coins;
+  document.getElementById('coin-display-ch').textContent = state.coins;
+  showPointsPopup('+' + amount + ' 🪙');
+
+  state.petStats.health = Math.min(100, state.petStats.health + 3);
+  state.petStats.food = Math.min(100, state.petStats.food + 2);
+  updateStats();
+
+  await saveCurrentUserData();
+}
+
+function showPointsPopup(text) {
+  const p = document.getElementById('points-popup');
+  p.textContent = text;
+  p.classList.add('show');
+  setTimeout(() => p.classList.remove('show'), 1800);
+}
+
+// ===============================
+// CHALLENGES
+// ===============================
+async function submitChallenge(type) {
+  if (state.challengesDone[type]) {
+    showToast('✅ ¡Ya completaste este reto hoy!');
+    return;
+  }
+
+  if (type === 'steps') {
+    const val = parseInt(document.getElementById('input-steps').value) || 0;
+    state.challenges.steps = Math.min(val, 6000);
+    const pct = (state.challenges.steps / 6000) * 100;
+    document.getElementById('prog-steps').style.width = pct + '%';
+    document.getElementById('label-steps').textContent = state.challenges.steps + ' / 6000 pasos';
+
+    if (state.challenges.steps >= 6000) {
+      await completeChallenge('steps', 15, 'ch-steps');
+    } else {
+      showToast('👟 Progreso guardado: ' + state.challenges.steps + ' pasos');
+      await saveCurrentUserData();
+    }
+  }
+
+  if (type === 'exercise') {
+    const val = parseInt(document.getElementById('input-exercise').value) || 0;
+    state.challenges.exercise = Math.min(val, 30);
+    const pct = (state.challenges.exercise / 30) * 100;
+    document.getElementById('prog-exercise').style.width = pct + '%';
+    document.getElementById('label-exercise').textContent = state.challenges.exercise + ' / 30 minutos';
+
+    if (state.challenges.exercise >= 30) {
+      await completeChallenge('exercise', 20, 'ch-exercise');
+    } else {
+      showToast('🏃 Progreso guardado: ' + state.challenges.exercise + ' minutos');
+      await saveCurrentUserData();
+    }
+  }
+}
+
+async function addWater() {
+  if (state.challengesDone['water']) {
+    showToast('✅ ¡Reto de agua completado!');
+    return;
+  }
+
+  state.challenges.water = Math.min(state.challenges.water + 1, 3);
+  const pct = (state.challenges.water / 3) * 100;
+  document.getElementById('prog-water').style.width = pct + '%';
+  document.getElementById('label-water').textContent = state.challenges.water + ' / 3 vasos registrados';
+
+  if (state.challenges.water >= 3) {
+    await completeChallenge('water', 5, 'ch-water');
+  } else {
+    showToast('💧 Vaso ' + state.challenges.water + ' de 3 registrado');
+    await saveCurrentUserData();
+  }
+}
+
+async function completeChallenge(type, pts, cardId) {
+  state.challengesDone[type] = true;
+  const card = document.getElementById(cardId);
+  card.classList.add('completed');
+  await addCoins(pts);
+  showToast('🎉 ¡Reto completado! +' + pts + ' puntos');
+  await checkAllChallenges();
+  await saveCurrentUserData();
+}
+
+async function checkAllChallenges() {
+  const all = Object.values(state.challengesDone).every(v => v);
+  if (all) {
+    setTimeout(async () => {
+      await addCoins(20);
+      showToast('🏆 ¡Todos los retos completados! Bonus +20');
+    }, 1000);
+  }
+}
+
+function renderChallenges() {
+  document.getElementById('prog-steps').style.width = ((state.challenges.steps / 6000) * 100) + '%';
+  document.getElementById('label-steps').textContent = state.challenges.steps + ' / 6000 pasos';
+
+  document.getElementById('prog-water').style.width = ((state.challenges.water / 3) * 100) + '%';
+  document.getElementById('label-water').textContent = state.challenges.water + ' / 3 vasos registrados';
+
+  document.getElementById('prog-exercise').style.width = ((state.challenges.exercise / 30) * 100) + '%';
+  document.getElementById('label-exercise').textContent = state.challenges.exercise + ' / 30 minutos';
+
+  document.getElementById('ch-steps').classList.toggle('completed', state.challengesDone.steps);
+  document.getElementById('ch-water').classList.toggle('completed', state.challengesDone.water);
+  document.getElementById('ch-exercise').classList.toggle('completed', state.challengesDone.exercise);
+}
+
+function showInfo() {
+  showToast('💧 Bebe al menos 2 litros de agua al día. Puedes hacer una foto como prueba.');
+}
+
+// ===============================
+// CAMERA
+// ===============================
+let cameraStream = null;
+
+async function openCamera() {
+  const modal = document.getElementById('camera-modal');
+  modal.classList.add('show');
+  try {
+    cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+    document.getElementById('cameraVideo').srcObject = cameraStream;
+  } catch (e) {
+    showToast('📷 No se pudo acceder a la cámara');
+    modal.classList.remove('show');
+  }
+}
+
+async function snapPhoto() {
+  const video = document.getElementById('cameraVideo');
+  const canvas = document.getElementById('cameraCanvas');
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  canvas.getContext('2d').drawImage(video, 0, 0);
+  const dataUrl = canvas.toDataURL('image/jpeg');
+  const img = document.getElementById('water-photo');
+  img.src = dataUrl;
+  img.style.display = 'block';
+  closeCamera();
+  showToast('📷 ¡Foto guardada como prueba!');
+  await saveCurrentUserData();
+}
+
+function closeCamera() {
+  if (cameraStream) { cameraStream.getTracks().forEach(t => t.stop()); cameraStream = null; }
+  document.getElementById('camera-modal').classList.remove('show');
+}
+
+// ===============================
+// CUSTOMIZE
+// ===============================
+function selectSkin(skin, el) {
+  state.pendingSkin = skin;
+  document.querySelectorAll('.skin-option').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  updateCustomizePreview();
+}
+
+function updateCustomizePreview() {
+  const skin = state.pendingSkin || state.currentPet.skin;
+  const type = state.currentPet.type;
+  const el = document.getElementById('customize-preview');
+
+  if (skin === 'goku') {
+    el.innerHTML = '<div style="font-size:5rem">🐉</div><div style="font-size:0.7rem;font-weight:800;color:#e65100;margin-top:4px">TRAJE GOKU - Dragon Ball Z</div>';
+  } else {
+    el.textContent = getPetEmoji(type, skin);
+  }
+}
+
+async function saveSkin() {
+  if (!state.pendingSkin) state.pendingSkin = state.currentPet.skin;
+  state.currentPet.skin = state.pendingSkin;
+
+  updatePetDisplay();
+
+  if (currentUser) {
+    currentUser.pet.skin = state.currentPet.skin;
+    await updateUser(currentUser);
+  }
+
+  await saveCurrentUserData();
+  showToast('✅ ¡Aspecto guardado!');
+  showScreen('screen-game');
+}
+
+// ===============================
+// PLANS
+// ===============================
+function showPlans() {
+  document.getElementById('plans-overlay').classList.add('show');
+}
+function hidePlans(e) {
+  if (!e || e.target === document.getElementById('plans-overlay') || !e.target) {
+    document.getElementById('plans-overlay').classList.remove('show');
+  }
+}
+async function selectPlan(plan) {
+  const names = { free: 'Gratuito', plus: 'Plus ⚡', premium: 'Premium 👑' };
+  if (currentUser) {
+    currentUser.plan = plan;
+    await updateUser(currentUser);
+  }
+  showToast('🎉 Plan ' + names[plan] + ' activado');
+  hidePlans();
+}
+
+// ===============================
+// LOGOUT
+// ===============================
+async function logout() {
+  await clearSession();
+  currentUser = null;
+
+  showToast('🚪 Sesión cerrada');
+  setTimeout(() => {
+    location.reload();
+  }, 700);
+}
+
+// ===============================
+// TOAST
+// ===============================
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+// ===============================
+// PET ANIMATION VARIATIONS
+// ===============================
+let moodInterval;
+
+function startPetAnimations() {
+  const el = document.getElementById('pet-display');
+  if (!el) return;
+  const anims = [
+    'petFloat 3s ease-in-out infinite',
+    'petFloat 2s ease-in-out infinite, petNod 4s ease-in-out infinite',
+  ];
+  moodInterval = setInterval(() => {
+    if (currentScreen !== 'screen-game') return;
+    el.style.animation = 'none';
+    void el.offsetWidth;
+    el.style.animation = anims[Math.floor(Math.random() * anims.length)];
+  }, 5000);
+}
+
+// ===============================
+// INIT
+// ===============================
+const style = document.createElement('style');
+style.textContent = `
+  @keyframes petNod {
+    0%,100%{transform:rotate(-3deg);}
+    25%{transform:rotate(3deg) scale(1.02);}
+    50%{transform:rotate(-1deg) translateY(-6px);}
+    75%{transform:rotate(2deg);}
+  }
+`;
+document.head.appendChild(style);
+
+setInterval(async () => {
+  if (currentScreen !== 'screen-game') return;
+  state.petStats.food = Math.max(0, state.petStats.food - 0.5);
+  state.petStats.sleep = Math.max(0, state.petStats.sleep - 0.3);
+  updateStats();
+  await saveCurrentUserData();
+}, 30000);
+
+async function initApp() {
+  await openDB();
+  startPetAnimations();
+
+  const sessionUserId = await getSession();
+  if (sessionUserId) {
+    const user = await getUserById(sessionUserId);
+    if (user) {
+      currentUser = user;
+      loadUserToState(user);
+      showToast('🦦 Mochi te estaba esperando');
+      showScreen('screen-game');
+    }
+  }
+}
+
+initApp();
+</script>
+</body>
+</html>
